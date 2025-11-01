@@ -1,0 +1,170 @@
+﻿@using WebMatrix.Data;
+@{
+    var db = Database.Open("GameDBcreationFull");
+    var sql = "SELECT c.Category, bg.Name , f.Family, bg.ImagePath, bg.Description, bg.YearPublished FROM BoardGame as bg\r\nJOIN GameCategory as gc on bg.BGGId=gc.BGGId\r\nJOIN Category as c on c.CategoryID=gc.Category \r\nJOIN GameFamily as f on f.FamilyCode=bg.Family where bg.name like concat(@0,'%')";
+    var text = Request.Form["search"];
+    var data = db.Query(sql, text);
+    //var isql = "SELECT c.Category, bg.Name , f.Family, bg.ImagePath, bg.Description, bg.YearPublished FROM BoardGame as bg\r\nJOIN GameCategory as gc on bg.BGGId=gc.BGGId\r\nJOIN Category as c on c.CategoryID=gc.Category \r\nJOIN GameFamily as f on f.FamilyCode=bg.Family "
+};
+@{
+    ViewBag.Title = "Home Page";
+}
+<style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    /* The slider */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 34px;
+    }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+    .hidden {
+        display: none
+    }
+
+</style>
+
+<main class="container ">
+    <form action="/Home/Index" method="post" class="row">
+        <div class="col-3"><input type="text" name="search" class="form-control" placeholder="Search" /></div>
+        <div class="col-2"><button type="submit" class="btn btn-primary">Search</button></div>   
+    </form>
+    <hr />
+    <label class="switch">
+        <input type="checkbox">
+        <span class="slider round"></span>
+    </label>
+    
+
+    @*<div class="row justify-content-between">*@
+
+
+        @if (data.Count() > 0)
+        {
+
+
+
+
+            <div class="myCard row justify-content-between hidden ">
+                @foreach (var row in data) {
+
+                        
+                            <div class="card mt-4 " style="width: 18rem">
+                                <img src="@row.imagePath" class="card-img-top" style="width: 100%; height:12rem ; object-fit: cover; object-position: center" alt="...">
+                                <div class="card-body">
+                                    <h5 class="card-title">@row.Name</h5>
+                                    @if (row.Family == null)
+                                    {<p class="card-text">No Family</p>}
+                                    else
+                                    {<p class="card-text">@row.Family</p>}
+
+
+                                    <p class="card-text">@row.category</p>
+                                    <a href="#" class="btn btn-primary">Detail</a>
+                                </div>
+                            </div>
+                       
+                }
+
+            </div>
+            
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Year of publish</th>
+                            <th scope="col">Image</th>
+                        </tr>
+                    </thead>
+                    @foreach (var row in data)
+                    {
+                        <tbody>
+                            <tr>
+                                <th scope="row">@row.name</th>
+                                <td class="overflow-scroll text-wrap" style="width:20rem; height:10rem" title="@row.Description">
+                                    @(row.Description.Length > 50 ? row.Description.Substring(0, 50) + "..." : row.Description)
+                                </td>
+                                <td>@row.YearPublished</td>
+                                <td> <img src="@row.imagePath" class="card-img-top" style="width: 100%; height:12rem ; object-fit: cover; object-position: center" alt="..."></td>
+
+                            </tr>
+
+
+                        </tbody>
+                    }
+                </table>
+            }
+            else
+            {<h2 class="text-danger text-center">Oops! no matching products returned... </h2>};
+
+    @*</div>*@
+            <script>
+                var btn = document.querySelector(".slider")
+                var card = document.querySelector(".myCard")
+                var table = document.querySelector("table")
+                btn.addEventListener("click", function () {
+                    if (card.classList.contains("hidden")) {
+                        card.classList.remove("hidden")
+                        table.classList.add("hidden")
+                    }
+                    else {
+                            card.classList.add("hidden")
+                            table.classList.remove("hidden")
+                    }
+                })</script>
+</main>
