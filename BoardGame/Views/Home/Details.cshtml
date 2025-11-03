@@ -1,7 +1,117 @@
-﻿
-@{
+﻿@*@using WebMatrix.Data
+@{ var id = Request.QueryString["id"];
+    var db = Database.Open("GameDBcreationFull");
+    var gdb = "select * from BoardGame where BGGId = @0";
+    var rdb = "select * from "
+var data = db.QuerySingle(gdb, id);
     ViewBag.Title = "Detail";
 }
+<style>
 
-<h2>Detail</h2>
+    .overlay {
+        background: black;
+        opacity: 0.2;
+    }
+</style>
 
+<h2 class="row col-10 text-center ">Product Detail</h2>
+<div class="row">
+    <div class="card mb-3" style="max-width: fit-content;">
+        <div class="row g-0">
+            <div class="">
+                <img src="@data.imagePath" class="img-fluid rounded-start" alt="...">
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h5 class="card-title">Card title</h5>
+                    <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                    <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>*@
+
+
+
+@using WebMatrix.Data
+
+@{
+    var id = Request.QueryString["id"];
+    var db = Database.Open("GameDBcreationFull");
+
+    // define the query to be run
+    var selectQueryString = "SELECT b.*, categoryName, avgRating, reviewCount " +
+                            "FROM BoardGame as bg " +
+                            "JOIN GameCategory as gc on bg.BGGId=gc.BGGId" +
+                            "JOIN GameFamily as f on f.FamilyCode = bg.Family " +
+                            "Category as c on c.CategoryID=gc.Category " +
+                            "JOIN(SELECT itemID, AVG(rating) AS avgRating, COUNT(*) AS reviewCount " +
+                            "FROM Reviews GROUP BY itemID " +
+                            ") AS calc " +
+                            "ON I.itemID = calc.itemID " +
+                            "WHERE I.itemID = @0 ";
+
+    var data = db.QuerySingle(selectQueryString, id);
+
+
+}
+
+<div class="jumbotron pt-1 pb-1 mt-2">
+    <h2 class="text-center">Product Detail</h2>
+</div>
+
+
+@if (data != null)
+{
+    <div class="row justify-content-center">
+        <div class="col-8">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">@data.itemName</h5>
+                    <p class="card-text">@data.itemDescription</p>
+                    <div class="card-text">
+                        <div class="text-muted small">
+                            Price: @data.itemCost.ToString("C")<br />
+                            Category: @data.categoryName<br />
+                            <form method="post" action="/Home/Details?id=@Request.QueryString["id"]">
+                                <button type="submit" class="border-0 bg-transparent p-0">
+                                    (@data.reviewCount Reviews, Avg @data.avgRating)
+                                    <!-- factoring in singular vs plural -->
+                                    (@data.reviewCount @(data.reviewCount == 1 ? "Review" : "Reviews"),
+                                </button>
+
+                                @for (var i = 0; i < data.avgRating; i++)
+                                {
+                                    <img src="/Images/star.png" alt="star" />
+                                }
+                            </form>
+                        </div>
+                    </div>
+
+                    @if (IsPost)
+                    {
+                        var reviewsSql = "SELECT * FROM Reviews WHERE itemID = @0";
+                        var reviewData = db.Query(reviewsSql, Request.QueryString["id"]);
+
+                        <h6>Customer Reviews</h6>
+                        foreach (var rev in reviewData)
+                        {
+                            @rev.reviewDate.ToLongDateString()<br />
+                            <span>Rating: </span> @rev.rating<br />
+                            @rev.reviewDescription
+                            <hr />
+                        }
+                    }
+
+                </div>
+                <img class="card-img-bottom w-50" src="@data.itemImage" alt="@data.itemName">
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <h2 class="text-center text-danger">Ooops - That product is not available!</h2>
+}

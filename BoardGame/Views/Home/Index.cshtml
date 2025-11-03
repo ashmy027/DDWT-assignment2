@@ -1,7 +1,9 @@
 ﻿@using WebMatrix.Data;
 @{
     var db = Database.Open("GameDBcreationFull");
-    var sql = "SELECT c.Category, bg.Name , f.Family, bg.ImagePath, bg.Description, bg.YearPublished FROM BoardGame as bg\r\nJOIN GameCategory as gc on bg.BGGId=gc.BGGId\r\nJOIN Category as c on c.CategoryID=gc.Category \r\nJOIN GameFamily as f on f.FamilyCode=bg.Family where bg.name like concat(@0,'%')";
+    var sql = "SELECT DISTINCT\r\nbg.*,\r\nc.Category       AS CategoryName,\r\nf.Family         AS FamilyName\r\nFROM BoardGame      AS bg\r\nJOIN GameCategory   AS gc ON bg.BGGId    = gc.BGGId\r\nJOIN Category       AS c  ON c.CategoryID = gc.Category\r\nJOIN GameFamily     AS f  ON f.FamilyCode = bg.Family;";
+
+    
     var text = Request.Form["search"];
     var data = db.Query(sql, text);
     //var isql = "SELECT c.Category, bg.Name , f.Family, bg.ImagePath, bg.Description, bg.YearPublished FROM BoardGame as bg\r\nJOIN GameCategory as gc on bg.BGGId=gc.BGGId\r\nJOIN Category as c on c.CategoryID=gc.Category \r\nJOIN GameFamily as f on f.FamilyCode=bg.Family "
@@ -80,91 +82,148 @@
 <main class="container ">
     <form action="/Home/Index" method="post" class="row">
         <div class="col-3"><input type="text" name="search" class="form-control" placeholder="Search" /></div>
-        <div class="col-2"><button type="submit" class="btn btn-primary">Search</button></div>   
+        <div class="col-3"><input type="text" name="search" class="form-control" placeholder="Search" /></div>
+        <div class="col-2"><button type="submit" class="btn btn-primary">Search</button></div>
     </form>
     <hr />
     <label class="switch">
         <input type="checkbox">
         <span class="slider round"></span>
     </label>
-    
+
 
     @*<div class="row justify-content-between">*@
 
 
-        @if (data.Count() > 0)
-        {
+    @if (data.Count() > 0)
+    {
 
 
 
 
-            <div class="myCard row justify-content-between hidden ">
-                @foreach (var row in data) {
-
-                        
-                            <div class="card mt-4 " style="width: 18rem">
-                                <img src="@row.imagePath" class="card-img-top" style="width: 100%; height:12rem ; object-fit: cover; object-position: center" alt="...">
-                                <div class="card-body">
-                                    <h5 class="card-title">@row.Name</h5>
-                                    @if (row.Family == null)
-                                    {<p class="card-text">No Family</p>}
-                                    else
-                                    {<p class="card-text">@row.Family</p>}
+        <div class="myCard row justify-content-between hidden ">
+            @foreach (var row in data)
+            {
 
 
-                                    <p class="card-text">@row.category</p>
-                                    <a href="#" class="btn btn-primary">Detail</a>
-                                </div>
-                            </div>
-                       
-                }
-
-            </div>
-            
-
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Name</th>
-                            <th scope="col">Description</th>
-                            <th scope="col">Year of publish</th>
-                            <th scope="col">Image</th>
-                        </tr>
-                    </thead>
-                    @foreach (var row in data)
-                    {
-                        <tbody>
-                            <tr>
-                                <th scope="row">@row.name</th>
-                                <td class="overflow-scroll text-wrap" style="width:20rem; height:10rem" title="@row.Description">
-                                    @(row.Description.Length > 50 ? row.Description.Substring(0, 50) + "..." : row.Description)
-                                </td>
-                                <td>@row.YearPublished</td>
-                                <td> <img src="@row.imagePath" class="card-img-top" style="width: 100%; height:12rem ; object-fit: cover; object-position: center" alt="..."></td>
-
-                            </tr>
+                <div class="card mt-4 p-1" style="width: 18rem">
+                    <img src="@row.imagePath" class="card-img-top" style="width: 100%; height:12rem ; object-fit: cover; object-position: center" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">@row.Name</h5>
+                        @if (row.Family == null)
+                        {<p class="card-text">No Family</p>}
+                        else
+                        {<p class="card-text">@row.FamilyName</p>}
 
 
-                        </tbody>
-                    }
-                </table>
+                        <p class="card-text">@row.CategoryName</p>
+
+                        <a href="/Home/Details?id=@row.BGGid" class="btn btn-primary">Detail</a>
+                    </div>
+                </div>
+
             }
-            else
-            {<h2 class="text-danger text-center">Oops! no matching products returned... </h2>};
+
+        </div>
+
+        <div class="mx-auto mt-1" style="max-width: 1000px; overflow-x: auto; border: solid; border-color: #dadada;">
+            <table class="table " style="">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Year of publish</th>
+                        <th scope="col">GameWeight</th>
+                        <th scope="col">MinPlayers</th>
+                        <th scope="col">MaxPlayers</th>
+                        <th scope="col">ComAgeRec</th>
+                        <th scope="col">LanguageEase</th>
+                        <th scope="col">BestPlayers</th>
+                        <th scope="col">NumOwned</th>
+                        <th scope="col"> NumWant</th>
+                        <th scope="col">NumWish</th>
+                        <th scope="col">MfgPlaytime</th>
+                        <th scope="col">ComMinPlayTime</th>
+                        <th scope="col">ComMaxPlayTime</th>
+                        <th scope="col">MfgAgeRec</th>
+                        <th scope="col">NumExpansions</th>
+                        <th scope="col">NumImplementations</th>
+                        <th scope="col">Family</th>
+                        <th scope="col">RankInBoardGames</th>
+                        <th scope="col">RankInStrategyGames</th>
+                        <th scope="col">RankInFamilyGames</th>
+                        <th scope="col">RankInThematic</th>
+                        <th scope="col" class="w-25">ImagePath</th>
+                    </tr>
+                </thead>
+                @foreach (var row in data)
+                {
+                    <tbody>
+                        <tr>
+                            <th scope="row">@row.name</th>
+                            <td class="overflow-scroll text-wrap" style="width:20rem; height:10rem" title="@row.Description">
+                                @(row.Description.Length > 50 ? row.Description.Substring(0, 50) + "..." : row.Description)
+                            </td>
+                            <td>@row.YearPublished</td>
+                            <td>@String.Format("{0:F2}", row.GameWeight)</td>
+                            <td>@row.MinPlayers</td>
+                            <td>@row.MaxPlayers</td>
+                            <td>@(row.ComAgeRec == null ? "N/A" : String.Format("{0:F2}", row.ComAgeRec))</td>
+                            <td>@(row.LanguageEase == null ? "N/A" : String.Format("{0:F2}", row.LanguageEase))</td>
+                            <td>@row.BestPlayers</td>
+                            <td>@row.NumOwned</td>
+                            <td>@row.NumWant</td>
+                            <td>@row.NumWish</td>
+                            <td>@row.MfgPlaytime</td>
+                            <td>@row.ComMinPlayTime</td>
+                            <td>@row.ComMaxPlayTime</td>
+                            <td>@row.MfgAgeRec</td>
+                            <td>@row.NumExpansions</td>
+                            <td>@row.NumImplementations</td>
+                            <td>@row.FamilyName</td>
+                            <td>@row.RankInboardgame</td>
+                            <td>@row.RankInStrategyGames</td>
+                            <td>@row.RankInfamilygames</td>
+                            <td>@row.RankInThematic</td>
+                            <td class="w-25"> <img src="@row.imagePath" class="card-img-top" style="width: 100% ; object-fit: cover; object-position: center" alt="..."></td>
+                        </tr>
+
+
+                    </tbody>
+                }
+            </table>
+        </div>
+    }
+    else
+    {<h2 class="text-danger text-center">Oops! no matching products returned... </h2>};
 
     @*</div>*@
-            <script>
-                var btn = document.querySelector(".slider")
-                var card = document.querySelector(".myCard")
-                var table = document.querySelector("table")
-                btn.addEventListener("click", function () {
-                    if (card.classList.contains("hidden")) {
-                        card.classList.remove("hidden")
-                        table.classList.add("hidden")
-                    }
-                    else {
-                            card.classList.add("hidden")
-                            table.classList.remove("hidden")
-                    }
-                })</script>
+    <script>
+        var btn = document.querySelector(".slider");
+        var card = document.querySelector(".myCard");
+        var table = document.querySelector("table");
+
+        function applyView(mode) {
+            if (mode === 'card') {
+                card.classList.remove('hidden');
+                table.classList.add('hidden');
+            } else {
+                card.classList.add('hidden');
+                table.classList.remove('hidden');
+            }
+        }
+
+        btn.addEventListener("click", function () {
+            const showingCard = !card.classList.contains('hidden');
+            const nextMode = showingCard ? 'table' : 'card';
+            applyView(nextMode);
+            localStorage.setItem("viewLevel", nextMode); // 'card' or 'table'
+        });
+
+        window.onload = function () {
+            const saved = localStorage.getItem("viewLevel") || 'table';
+            applyView(saved);
+        };
+        </script>
+
 </main>
