@@ -1,16 +1,74 @@
 ﻿@using WebMatrix.Data;
 @{
     var db = Database.Open("GameDBcreationFull");
-    var sql = "SELECT DISTINCT\r\nbg.*,\r\nc.Category       AS CategoryName,\r\nf.Family         AS FamilyName\r\nFROM BoardGame      AS bg\r\nJOIN GameCategory   AS gc ON bg.BGGId    = gc.BGGId\r\nJOIN Category       AS c  ON c.CategoryID = gc.Category\r\nJOIN GameFamily     AS f  ON f.FamilyCode = bg.Family;";
+    var categories = db.Query("SELECT CategoryID, Category FROM Category ORDER BY Category");
+    var sql = @"SELECT DISTINCT bg.*, 
+                       c.Category AS CategoryName, 
+                       f.Family   AS FamilyName
+                FROM BoardGame AS bg
+                JOIN GameCategory AS gc ON bg.BGGId = gc.BGGId
+                JOIN Category AS c ON c.CategoryID = gc.Category
+                JOIN GameFamily AS f ON f.FamilyCode = bg.Family
+                ORDER BY bg.Name";
 
-    
+    var Nsql = @"SELECT DISTINCT bg.*, 
+                       c.Category AS CategoryName, 
+                       f.Family   AS FamilyName
+                FROM BoardGame AS bg
+                JOIN GameCategory AS gc ON bg.BGGId = gc.BGGId
+                JOIN Category AS c ON c.CategoryID = gc.Category
+                JOIN GameFamily AS f ON f.FamilyCode = bg.Family
+                WHERE c.Category = @0
+                ORDER BY bg.Name";
+
+    var Csql = @"SELECT DISTINCT bg.*, 
+                       c.Category AS CategoryName, 
+                       f.Family   AS FamilyName
+                FROM BoardGame AS bg
+                JOIN GameCategory AS gc ON bg.BGGId = gc.BGGId
+                JOIN Category AS c ON c.CategoryID = gc.Category
+                JOIN GameFamily AS f ON f.FamilyCode = bg.Family
+                WHERE bg.Name LIKE @0 + '%'
+                ORDER BY bg.Name";
+
+    var NCsql = @"SELECT DISTINCT bg.*, 
+                       c.Category AS CategoryName, 
+                       f.Family   AS FamilyName
+                FROM BoardGame AS bg
+                JOIN GameCategory AS gc ON bg.BGGId = gc.BGGId
+                JOIN Category AS c ON c.CategoryID = gc.Category
+                JOIN GameFamily AS f ON f.FamilyCode = bg.Family
+                WHERE bg.Name LIKE @0 + '%' AND c.Category = @1
+                ORDER BY bg.Name";
+    IEnumerable<dynamic> data;
     var text = Request.Form["search"];
-    var data = db.Query(sql, text);
-    //var isql = "SELECT c.Category, bg.Name , f.Family, bg.ImagePath, bg.Description, bg.YearPublished FROM BoardGame as bg\r\nJOIN GameCategory as gc on bg.BGGId=gc.BGGId\r\nJOIN Category as c on c.CategoryID=gc.Category \r\nJOIN GameFamily as f on f.FamilyCode=bg.Family "
-};
-@{
+    var category = Request.Form["category"];
+    if (String.IsNullOrWhiteSpace(text) && String.IsNullOrWhiteSpace(category))
+    {
+
+         data = db.Query(sql);
+    }
+
+    else if (String.IsNullOrWhiteSpace(text))
+    {
+
+         data = db.Query(Nsql, category);
+    }
+
+    else if (String.IsNullOrWhiteSpace(category))
+    {
+
+         data = db.Query(Csql, text);
+    }
+
+    else
+    {
+
+         data = db.Query(NCsql, text, category);
+    }
+
     ViewBag.Title = "Home Page";
-}
+};
 <style>
     .switch {
         position: relative;
@@ -73,16 +131,40 @@
         .slider.round:before {
             border-radius: 50%;
         }
+
     .hidden {
         display: none
     }
-
 </style>
+Thematic
+Strategy
+War
+Family
+CGS
+Abstract
+Party
+Childrens
 
 <main class="container ">
     <form action="/Home/Index" method="post" class="row">
         <div class="col-3"><input type="text" name="search" class="form-control" placeholder="Search" /></div>
-        <div class="col-3"><input type="text" name="search" class="form-control" placeholder="Search" /></div>
+        <div class="col-md-3">
+            
+                
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Dropdown button
+                        </button>
+                        <ul class="dropdown-menu ">
+                            <li><a class="dropdown-item" href="#">Action</a></li>
+                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </div>
+                
+            
+        </div>
+        @*<div class="col-3"><input type="text" name="search" class="form-control" placeholder="Search" /></div>*@
         <div class="col-2"><button type="submit" class="btn btn-primary">Search</button></div>
     </form>
     <hr />
@@ -132,6 +214,7 @@
                     <tr>
                         <th scope="col">Name</th>
                         <th scope="col">Description</th>
+                        <th scope="col">Category</th>
                         <th scope="col">Year of publish</th>
                         <th scope="col">GameWeight</th>
                         <th scope="col">MinPlayers</th>
@@ -164,6 +247,7 @@
                             <td class="overflow-scroll text-wrap" style="width:20rem; height:10rem" title="@row.Description">
                                 @(row.Description.Length > 50 ? row.Description.Substring(0, 50) + "..." : row.Description)
                             </td>
+                            <td>@row.CategoryName</td>
                             <td>@row.YearPublished</td>
                             <td>@String.Format("{0:F2}", row.GameWeight)</td>
                             <td>@row.MinPlayers</td>
@@ -198,8 +282,7 @@
     {<h2 class="text-danger text-center">Oops! no matching products returned... </h2>};
 
     @*</div>*@
-    <script>
-        var btn = document.querySelector(".slider");
+    <script>var btn = document.querySelector(".slider");
         var card = document.querySelector(".myCard");
         var table = document.querySelector("table");
 
@@ -223,7 +306,6 @@
         window.onload = function () {
             const saved = localStorage.getItem("viewLevel") || 'table';
             applyView(saved);
-        };
-        </script>
+        };</script>
 
 </main>

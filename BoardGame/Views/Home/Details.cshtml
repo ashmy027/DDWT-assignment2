@@ -42,19 +42,26 @@ var data = db.QuerySingle(gdb, id);
     var db = Database.Open("GameDBcreationFull");
 
     // define the query to be run
-    var selectQueryString = "SELECT b.*, categoryName, avgRating, reviewCount " +
-                            "FROM BoardGame as bg " +
-                            "JOIN GameCategory as gc on bg.BGGId=gc.BGGId" +
-                            "JOIN GameFamily as f on f.FamilyCode = bg.Family " +
-                            "Category as c on c.CategoryID=gc.Category " +
-                            "JOIN(SELECT itemID, AVG(rating) AS avgRating, COUNT(*) AS reviewCount " +
-                            "FROM Reviews GROUP BY itemID " +
-                            ") AS calc " +
-                            "ON I.itemID = calc.itemID " +
-                            "WHERE I.itemID = @0 ";
+    var selectQueryString = @"
+        SELECT bg.*, 
+               c.Category AS categoryName, 
+               calc.avgRating, 
+               calc.reviewCount
+        FROM BoardGame AS bg
+        JOIN GameCategory AS gc ON bg.BGGId = gc.BGGId
+        JOIN Category AS c ON c.CategoryID = gc.Category
+        JOIN GameFamily AS f ON f.FamilyCode = bg.Family
+        LEFT JOIN (
+            SELECT itemID, 
+                   AVG(rating) AS avgRating, 
+                   COUNT(*) AS reviewCount
+            FROM Reviews 
+            GROUP BY itemID
+        ) AS calc 
+            ON bg.BGGId = calc.itemID
+        WHERE bg.BGGId = @0";
 
-    var data = db.QuerySingle(selectQueryString, id);
-
+    var data = db.QuerySingle(selectQueryString, id); ;
 
 }
 
