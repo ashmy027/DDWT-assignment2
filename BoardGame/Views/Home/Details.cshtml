@@ -1,37 +1,37 @@
 ﻿@*@using WebMatrix.Data
-@{ var id = Request.QueryString["id"];
-    var db = Database.Open("GameDBcreationFull");
-    var gdb = "select * from BoardGame where BGGId = @0";
-    var rdb = "select * from "
-var data = db.QuerySingle(gdb, id);
-    ViewBag.Title = "Detail";
-}
-<style>
-
-    .overlay {
-        background: black;
-        opacity: 0.2;
+    @{ var id = Request.QueryString["id"];
+        var db = Database.Open("GameDBcreationFull");
+        var gdb = "select * from BoardGame where BGGId = @0";
+        var rdb = "select * from "
+    var data = db.QuerySingle(gdb, id);
+        ViewBag.Title = "Detail";
     }
-</style>
+    <style>
 
-<h2 class="row col-10 text-center ">Product Detail</h2>
-<div class="row">
-    <div class="card mb-3" style="max-width: fit-content;">
-        <div class="row g-0">
-            <div class="">
-                <img src="@data.imagePath" class="img-fluid rounded-start" alt="...">
-            </div>
-            <div class="col-md-8">
-                <div class="card-body">
-                    <h5 class="card-title">Card title</h5>
-                    <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                    <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p>
+        .overlay {
+            background: black;
+            opacity: 0.2;
+        }
+    </style>
+
+    <h2 class="row col-10 text-center ">Product Detail</h2>
+    <div class="row">
+        <div class="card mb-3" style="max-width: fit-content;">
+            <div class="row g-0">
+                <div class="">
+                    <img src="@data.imagePath" class="img-fluid rounded-start" alt="...">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title">Card title</h5>
+                        <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                        <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-</div>*@
+    </div>*@
 
 
 
@@ -42,78 +42,77 @@ var data = db.QuerySingle(gdb, id);
     var db = Database.Open("GameDBcreationFull");
 
     // define the query to be run
-    var selectQueryString = @"
-        SELECT bg.*, 
-               c.Category AS categoryName, 
-               calc.avgRating, 
-               calc.reviewCount
+    var sql = @"
+        SELECT  bg.*,
+                c.Category      AS CategoryName,
+                f.Family        AS FamilyName,
+                calc.avgRating,
+                calc.reviewCount
         FROM BoardGame AS bg
         JOIN GameCategory AS gc ON bg.BGGId = gc.BGGId
-        JOIN Category AS c ON c.CategoryID = gc.Category
-        JOIN GameFamily AS f ON f.FamilyCode = bg.Family
+        JOIN Category     AS c  ON c.CategoryID = gc.Category
+        JOIN GameFamily   AS f  ON f.FamilyCode = bg.Family
         LEFT JOIN (
-            SELECT itemID, 
-                   AVG(rating) AS avgRating, 
-                   COUNT(*) AS reviewCount
-            FROM Reviews 
-            GROUP BY itemID
-        ) AS calc 
-            ON bg.BGGId = calc.itemID
+            SELECT BGGId, AVG(Rating) AS avgRating, COUNT(*) AS reviewCount
+            FROM userRating
+            GROUP BY BGGId
+        ) AS calc ON bg.BGGId = calc.BGGId
         WHERE bg.BGGId = @0";
 
-    var data = db.QuerySingle(selectQueryString, id); ;
+    var data = db.QuerySingle(sql, id); ;
 
 }
-
-<div class="jumbotron pt-1 pb-1 mt-2">
-    <h2 class="text-center">Product Detail</h2>
-</div>
-
+@using System
 
 @if (data != null)
 {
+    var avg = (object)data.avgRating == null ? 0.0 : (double)data.avgRating;
+    var stars = Math.Max(0, Math.Min(5, (int)Math.Round(avg))); // clamp 0..5
+
     <div class="row justify-content-center">
         <div class="col-8">
             <div class="card mb-3">
                 <div class="card-body">
-                    <h5 class="card-title">@data.itemName</h5>
-                    <p class="card-text">@data.itemDescription</p>
-                    <div class="card-text">
-                        <div class="text-muted small">
-                            Price: @data.itemCost.ToString("C")<br />
-                            Category: @data.categoryName<br />
-                            <form method="post" action="/Home/Details?id=@Request.QueryString["id"]">
-                                <button type="submit" class="border-0 bg-transparent p-0">
-                                    (@data.reviewCount Reviews, Avg @data.avgRating)
-                                    <!-- factoring in singular vs plural -->
-                                    (@data.reviewCount @(data.reviewCount == 1 ? "Review" : "Reviews"),
-                                </button>
+                    <h5 class="card-title">@data.Name</h5>
+                    <p class="card-text">@data.Description</p>
 
-                                @for (var i = 0; i < data.avgRating; i++)
-                                {
-                                    <img src="/Images/star.png" alt="star" />
-                                }
-                            </form>
-                        </div>
+                    <div class="text-muted small">
+                        Category: @data.CategoryName<br />
+                        Family: @data.FamilyName<br />
+                        Year: @data.YearPublished
                     </div>
+
+                    <form method="post" action="/Home/Details?id=@Request.QueryString["id"]" class="mt-2">
+                        <button type="submit" class="border-0 bg-transparent p-0 text-start">
+                            (@(data.reviewCount ?? 0) @( (data.reviewCount ?? 0) == 1 ? "Review" : "Reviews"), Avg @avg.ToString("0.0"))
+                        </button>
+                        <div class="mt-1 mx-auto">
+                            @for (var i = 0; i < stars; i++)
+                            {
+                                <img src="/Images/star.png" alt="star" style="height:16px;width:16px;" />
+                            }
+                        </div>
+                    </form>
 
                     @if (IsPost)
                     {
-                        var reviewsSql = "SELECT * FROM Reviews WHERE itemID = @0";
+                        var reviewsSql = "SELECT reviewDate, rating, reviewDescription FROM Reviews WHERE itemID = @0 ORDER BY reviewDate DESC";
                         var reviewData = db.Query(reviewsSql, Request.QueryString["id"]);
 
-                        <h6>Customer Reviews</h6>
+                        <h6 class="mt-3">Customer Reviews</h6>
                         foreach (var rev in reviewData)
                         {
-                            @rev.reviewDate.ToLongDateString()<br />
-                            <span>Rating: </span> @rev.rating<br />
-                            @rev.reviewDescription
+                            <div class="mb-2">
+                                <div class="text-muted small">@rev.reviewDate.ToLongDateString()</div>
+                                <div><strong>Rating:</strong> @rev.rating</div>
+                                <div>@rev.reviewDescription</div>
+                            </div>
                             <hr />
                         }
                     }
-
                 </div>
-                <img class="card-img-bottom w-50" src="@data.itemImage" alt="@data.itemName">
+
+                <img class="card-img-bottom w-50" src="@data.ImagePath" alt="@data.Name">
             </div>
         </div>
     </div>
