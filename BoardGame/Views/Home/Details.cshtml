@@ -1,40 +1,4 @@
-﻿@*@using WebMatrix.Data
-    @{ var id = Request.QueryString["id"];
-        var db = Database.Open("GameDBcreationFull");
-        var gdb = "select * from BoardGame where BGGId = @0";
-        var rdb = "select * from "
-    var data = db.QuerySingle(gdb, id);
-        ViewBag.Title = "Detail";
-    }
-    <style>
-
-        .overlay {
-            background: black;
-            opacity: 0.2;
-        }
-    </style>
-
-    <h2 class="row col-10 text-center ">Product Detail</h2>
-    <div class="row">
-        <div class="card mb-3" style="max-width: fit-content;">
-            <div class="row g-0">
-                <div class="">
-                    <img src="@data.imagePath" class="img-fluid rounded-start" alt="...">
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <h5 class="card-title">Card title</h5>
-                        <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                        <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>*@
-
-
-
+﻿
 @using WebMatrix.Data
 
 @{
@@ -62,8 +26,6 @@
     var data = db.QuerySingle(sql, id); ;
 
 }
-@using System
-
 @if (data != null)
 {
     var avg = (object)data.avgRating == null ? 0.0 : (double)data.avgRating;

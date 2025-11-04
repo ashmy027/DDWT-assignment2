@@ -135,6 +135,26 @@
     .hidden {
         display: none
     }
+    
+    .triangle-cell {
+        display: flex;
+        align-items: center; 
+        justify-content: center; 
+        gap: 6px;
+    }
+    .triangle-right {
+        display: inline-block;
+        width: 0px;
+        height: 0px;
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        border-left: 10px solid #dadada;
+        vertical-align: middle;
+    }
+    a {
+        text-decoration: none;
+        color: #dadada;
+    }
 </style>
 
 <main class="container ">
@@ -189,7 +209,7 @@
 
                         <p class="card-text">@row.CategoryName</p>
 
-                        <a href="/Home/Details?id=@row.BGGid" class="btn btn-primary">Detail</a>
+                        <a href="/Home/Details?id=@row.BGGid" class="btn btn-primary">Details</a>
                     </div>
                 </div>
 
@@ -226,11 +246,12 @@
                         <th scope="col">RankInFamilyGames</th>
                         <th scope="col">RankInThematic</th>
                         <th scope="col" class="w-25">ImagePath</th>
+                        <th scope="col">More Details</th>
                     </tr>
                 </thead>
                 @foreach (var row in data)
                 {
-                    <tbody>
+                    <tbody >
                         <tr>
                             <th scope="row">@row.name</th>
                             <td class="overflow-scroll text-wrap" style="width:20rem; height:10rem" title="@row.Description">
@@ -258,7 +279,15 @@
                             <td>@row.RankInStrategyGames</td>
                             <td>@row.RankInfamilygames</td>
                             <td>@row.RankInThematic</td>
-                            <td class="w-25"> <img src="@row.imagePath" class="card-img-top" style="width: 100% ; object-fit: cover; object-position: center" alt="..."></td>
+                            <td class="w-10"> <img src="@row.imagePath" class="card-img-top" style="width: 100% ; object-fit: cover; object-position: center" alt="..."></td>
+                            <td >
+                                <div class=" triangle-cell">
+                                    <a class="triangle-right" href="/Home/Details?id=@row.BGGid">
+                                        
+                                    </a>
+                                </div>
+                            
+                            </td>
                         </tr>
 
 
